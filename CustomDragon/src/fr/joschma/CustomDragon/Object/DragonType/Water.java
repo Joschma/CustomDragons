@@ -8,6 +8,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.AbstractArrow.PickupStatus;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Guardian;
@@ -17,6 +18,7 @@ import org.bukkit.entity.Trident;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
 
 import fr.joschma.CustomDragon.CustomDragon;
 import fr.joschma.CustomDragon.Object.Dragon;
@@ -111,16 +113,22 @@ public class Water extends Dragon {
 			return;
 		if (time == 25) {
 //			Spearing: Drops a trident on everyone. (25 second cooldown). (Trident can’t be picked up)
+			Random rand = new Random();
+			
 			for (Player p : players) {
-				for (int i = 0; i < 15; i++) {
-					Location dLoc = dragon.getLocation();
-					Location pLoc = p.getLocation();
-					dLoc.setY(dLoc.getY() + 3);
+				for (int i = 0; i < 5; i++) {
+					int distance = rand.nextInt(4);
+					Location dLoc = dragon.getLocation().add(distance, 3, distance);
+					Location pLoc = p.getLocation().add(new Vector(0, 1, 0));
+					Vector direction = pLoc.toVector().subtract(dLoc.toVector());
+					
 					Trident trident = pLoc.getWorld().spawn(dLoc, Trident.class);
+					
 					trident.setGravity(false);
-					trident.setVelocity(pLoc.subtract(dLoc).toVector());
+					trident.setVelocity(direction);
 					trident.setPickupStatus(PickupStatus.DISALLOWED);
 				}
+				
 				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Spearing");
 			}
 		} else if (time == 30) {

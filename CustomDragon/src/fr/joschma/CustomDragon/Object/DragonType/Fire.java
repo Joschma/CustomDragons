@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.util.Vector;
 
 import fr.joschma.CustomDragon.CustomDragon;
 import fr.joschma.CustomDragon.Object.Dragon;
@@ -109,16 +110,21 @@ public class Fire extends Dragon {
 			return;
 		if (time == 25) {
 //			Flamethrower: Shoots 20 blaze fireballs in a string. (25 second cooldown).
+			Random rand = new Random();
+			
 			for (Player p : players) {
-				for (int i = 0; i < 15; i++) {
-					Location dLoc = dragon.getLocation();
-					Location pLoc = p.getLocation();
-					dLoc.setY(dLoc.getY() + 3);
-					Arrow arrow = pLoc.getWorld().spawnArrow(dLoc, pLoc.subtract(dLoc).toVector(), 0.6F, 5F);
-					arrow.setGravity(false);
-					arrow.setFireTicks(20 * 10);
+				for (int i = 0; i < 5; i++) {
+					int distance = rand.nextInt(4);
+					Location dLoc = dragon.getLocation().add(distance, 3, distance);
+					Location pLoc = p.getLocation().add(new Vector(0, 1, 0));
+					Vector direction = pLoc.toVector().subtract(dLoc.toVector());
+					
+					Arrow arrow = pLoc.getWorld().spawnArrow(dLoc, direction, 1F, 5F);
+                    arrow.setGravity(false);
+                    arrow.setFireTicks(20 * 10);
 					arrow.setVisualFire(true);
 				}
+				
 				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Flamethrower");
 			}
 		} else if (time == 30) {

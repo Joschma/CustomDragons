@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
@@ -77,7 +78,7 @@ public class Speed extends Dragon {
 					scheduler.cancelTask(taskId);
 					return;
 				}
-
+				
 				time30++;
 				time45++;
 
@@ -106,13 +107,17 @@ public class Speed extends Dragon {
 
 		if (time == 30) {
 //			Arrow Rain: Shoots a shower of arrows at everyone. (30 second cooldown)
+			Random rand = new Random();
+			
 			for (Player p : players) {
-				for (int i = 0; i < 15; i++) {
-					Location dLoc = dragon.getLocation();
-					Location pLoc = p.getLocation();
-					dLoc.setY(dLoc.getY() + 3);
-					Arrow arrow = pLoc.getWorld().spawnArrow(dLoc, pLoc.subtract(dLoc).toVector().add(new Vector(0, 1, 0)), 0.6F, 5F);
-					arrow.setGravity(false);
+				for (int i = 0; i < 5; i++) {
+					int distance = rand.nextInt(4);
+					Location dLoc = dragon.getLocation().add(distance, 3, distance);
+					Location pLoc = p.getLocation().add(new Vector(0, 1, 0));
+					Vector direction = pLoc.toVector().subtract(dLoc.toVector());
+					
+					Arrow arrow = pLoc.getWorld().spawnArrow(dLoc, direction, 1F, 5F);
+                    arrow.setGravity(false);
 				}
 
 				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Arrow Rain");
@@ -147,5 +152,47 @@ public class Speed extends Dragon {
 
 	public LivingEntity getDragon() {
 		return dragon;
+	}
+
+	public static final float DEGTORAD = 0.017453293F;
+	public static final float RADTODEG = 57.29577951F;
+
+	public static double lengthSquared(double... values) {
+		double rval = 0;
+		for (double value : values) {
+			rval += value * value;
+		}
+		return rval;
+	}
+
+	public static double length(double... values) {
+		return Math.sqrt(lengthSquared(values));
+	}
+
+	public static float getLookAtYaw(Vector motion) {
+		double dx = motion.getX();
+		double dz = motion.getZ();
+		float yaw = 0;
+		// Set yaw
+		if (dx != 0) {
+			// Set yaw start value based on dx
+			if (dx < 0) {
+				yaw = 270;
+			} else {
+				yaw = 90;
+			}
+			yaw -= atan(dz / dx);
+		} else if (dz < 0) {
+			yaw = 180;
+		}
+		return -yaw - 90;
+	}
+
+	public static float getLookAtPitch(Vector motion) {
+		return -atan(motion.getY() / length(motion.getX(), motion.getZ()));
+	}
+
+	public static float atan(double value) {
+		return RADTODEG * (float) Math.atan(value);
 	}
 }

@@ -33,31 +33,29 @@ public class onCreatureSpawnListener implements Listener {
 			int randDragon = rand.nextInt(6);
 			BossBar bossBar = Bukkit.createBossBar("null", BarColor.PURPLE, BarStyle.SOLID);
 			bossBar.setProgress(1);
-			
-			pl.getDrm().addDragon(new Speed(400, e.getEntity(), "Speed", bossBar, pl));
 
-//			switch (randDragon) {
-//			case 0:
-//				// normal dragon
-//				break;
-//			case 1:
-//				pl.getDrm().addDragon(new Miner(500, e.getEntity(), "Miner", bossBar, pl));
-//				break;
-//			case 2:
-//				pl.getDrm().addDragon(new Miner(1000, e.getEntity(), "VoidBorn", bossBar, pl));
-//				break;
-//			case 3:
-//				pl.getDrm().addDragon(new Speed(400, e.getEntity(), "Speed", bossBar, pl));
-//				break;
-//			case 4:
-//				pl.getDrm().addDragon(new Fire(400, e.getEntity(), "Fire", bossBar, pl));
-//				break;
-//			case 5:
-//				pl.getDrm().addDragon(new Water(600, e.getEntity(), "Water", bossBar, pl));
-//				break;
-//			default:
-//				break;
-//			}
+			switch (randDragon) {
+			case 0:
+				// normal dragon
+				break;
+			case 1:
+				pl.getDrm().addDragon(new Miner(500, e.getEntity(), "Miner", bossBar, pl));
+				break;
+			case 2:
+				pl.getDrm().addDragon(new Miner(1000, e.getEntity(), "VoidBorn", bossBar, pl));
+				break;
+			case 3:
+				pl.getDrm().addDragon(new Speed(400, e.getEntity(), "Speed", bossBar, pl));
+				break;
+			case 4:
+				pl.getDrm().addDragon(new Fire(400, e.getEntity(), "Fire", bossBar, pl));
+				break;
+			case 5:
+				pl.getDrm().addDragon(new Water(600, e.getEntity(), "Water", bossBar, pl));
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }
