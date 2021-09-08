@@ -1,0 +1,5 @@
+name : CustomDragon
+version : 1.0
+author : joschma
+main : fr.joschma.CustomDragon.CustomDragon
+api-version: 1.13
