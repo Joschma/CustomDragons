@@ -21,7 +21,9 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import fr.joschma.CustomDragon.CustomDragon;
+import fr.joschma.CustomDragon.Object.Debugger;
 import fr.joschma.CustomDragon.Object.Dragon;
+import fr.joschma.CustomDragon.Utils.SpeedUtils;
 
 public class VoidBorn extends Dragon {
 
@@ -41,15 +43,16 @@ public class VoidBorn extends Dragon {
 
 		dragon.setMaxHealth(health);
 		dragon.setHealth(health);
-		dragon.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 3));
-		
+
+		SpeedUtils.speedConverter(dragon, name, pl);
+
 		bossBar.setTitle(ChatColor.GOLD + name);
 
 		for (Entity en : dragon.getNearbyEntities(150, 300, 150)) {
 			if (en instanceof Player) {
 				Player p = (Player) en;
 				bossBar.addPlayer(p);
-				p.sendMessage("You have summond a " + ChatColor.GOLD + name + ChatColor.WHITE + " dragon");
+				Debugger.sysPlayer(p, pl.getFm().getString("Dragons.VoidBorn.SummondMessage"));
 			}
 		}
 
@@ -67,8 +70,9 @@ public class VoidBorn extends Dragon {
 
 		taskId = scheduler.scheduleSyncRepeatingTask(pl, new Runnable() {
 
-			int time30 = 0;
-			int time45 = 0;
+			int PowerfulPresenceCooldown = 0;
+			int ConfusionCooldown = 0;
+			int CorruptMinionsCooldown = 0;
 
 			@Override
 			public void run() {
@@ -77,21 +81,25 @@ public class VoidBorn extends Dragon {
 					return;
 				}
 
-				time30++;
-				time45++;
+				PowerfulPresenceCooldown++;
+				ConfusionCooldown++;
+				CorruptMinionsCooldown++;
 
-				if (time30 == 30) {
-					doAbilitie(time30);
-					time30 = 0;
-				} else if (time45 == 45) {
-					doAbilitie(time45);
-					time45 = 0;
+				if (PowerfulPresenceCooldown == pl.getFm().getInt("Dragons.VoidBorn.PowerfulPresence.CooldownInSeconds")) {
+					doAbilitie("PowerfulPresence");
+					PowerfulPresenceCooldown = 0;
+				} else if (CorruptMinionsCooldown == pl.getFm().getInt("Dragons.VoidBorn.CorruptMinions.CooldownInSeconds")) {
+					doAbilitie("CorruptMinions");
+					CorruptMinionsCooldown = 0;
+				} else if (ConfusionCooldown == pl.getFm().getInt("Dragons.VoidBorn.Confusion.CooldownInSeconds")) {
+					doAbilitie("Confusion");
+					ConfusionCooldown = 0;
 				}
 			}
 		}, 0, 20L);
 	}
 
-	public void doAbilitie(int time) {
+	public void doAbilitie(String attack) {
 		List<Player> players = new ArrayList<Player>();
 
 		for (Entity en : dragon.getNearbyEntities(150, 300, 150)) {
@@ -103,50 +111,49 @@ public class VoidBorn extends Dragon {
 		if (players.isEmpty())
 			return;
 
-		if (time == 30) {
-//			Powerful Presence: Players get the nausea effect for 10 seconds (30 second cooldown).
+		for (Player p : players) {
+			p.sendMessage(pl.getFm().getString("Dragons.VoidBorn." + attack + " .Message"));
+		}
+
+		if (attack.equals("Powerful Presence")) {
+//			Powerful Presence: Players get the nausea effect for 10 seconds (30 second cooldown)
+			
 			for (Player p : players) {
-				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Powerful Presence");
-				p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 20 * 10, 0));
+				p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 20 * pl.getFm().getInt("Dragons.VoidBorn.Confusion.EffectDurationInSeconds"), 0));
 			}
-		} else if (time == 45) {
+		} else if (attack.equals("Confusion")) {
+//			Confusion: All players are teleported as if they had just eaten a chorus fruit. (45 second cooldown)
+			
+			for (Player p : players) {
+				PlayerItemConsumeEvent event = new PlayerItemConsumeEvent(p, new ItemStack(Material.CHORUS_FRUIT));
+				Bukkit.getPluginManager().callEvent(event);
+			}
+		} else if (attack.equals("CorruptMinions")) {
 			Random rand = new Random();
-			int number = rand.nextInt(2);
+//			Corrupt Minions: Spawns 2 zombies with black leather armour (protection 1) and wooden swords (sharpness 1) on each player. (45 second cooldown)
+			
+			for (Player p : players) {
+				for (int i = 0; i < pl.getFm().getInt("Dragons.VoidBorn.Confusion.NumberOfZombies"); i++) {
+					Location loc = p.getLocation();
+					int distance = rand.nextInt(6);
 
-			if (number == 0) {
-//				Confusion: All players are teleported as if they had just eaten a chorus fruit. (45 second cooldown).
-				for (Player p : players) {
-					p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Confusion");
-					PlayerItemConsumeEvent event = new PlayerItemConsumeEvent(p, new ItemStack(Material.CHORUS_FRUIT));
-					Bukkit.getPluginManager().callEvent(event);
-				}
-			} else {
-//				Corrupt Minions: Spawns 2 zombies with black leather armour (protection 1) and wooden swords (sharpness 1) on each player. (45 second cooldown).
-				for (Player p : players) {
-					p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Corrupt Minions");
-					for (int i = 0; i < 2; i++) {
-						Location loc = p.getLocation();
-						int distance = rand.nextInt(6);
+					loc.add(distance, 3, distance);
 
-						loc.add(distance, 3, distance);
+					Zombie zombie = p.getWorld().spawn(loc, Zombie.class);
 
-						Zombie zombie = p.getWorld().spawn(loc, Zombie.class);
-						
-						ItemStack[] is = { new ItemStack(Material.LEATHER_BOOTS),
-								new ItemStack(Material.LEATHER_LEGGINGS), new ItemStack(Material.LEATHER_CHESTPLATE), 
-								new ItemStack(Material.LEATHER_HELMET) };
-						
-						for(ItemStack it : is) {
-							it.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
-						}
-						
-						zombie.getEquipment().setArmorContents(is);
+					ItemStack[] is = { new ItemStack(Material.LEATHER_BOOTS), new ItemStack(Material.LEATHER_LEGGINGS),
+							new ItemStack(Material.LEATHER_CHESTPLATE), new ItemStack(Material.LEATHER_HELMET) };
 
-						ItemStack sword = new ItemStack(Material.WOODEN_SWORD);
-						sword.addEnchantment(Enchantment.DAMAGE_ALL, 1);
-
-						zombie.getEquipment().setItemInMainHand(sword);
+					for (ItemStack it : is) {
+						it.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, 1);
 					}
+
+					zombie.getEquipment().setArmorContents(is);
+
+					ItemStack sword = new ItemStack(Material.WOODEN_SWORD);
+					sword.addEnchantment(Enchantment.DAMAGE_ALL, 1);
+
+					zombie.getEquipment().setItemInMainHand(sword);
 				}
 			}
 		}
@@ -156,11 +163,11 @@ public class VoidBorn extends Dragon {
 		stop = true;
 		bossBar.removeAll();
 	}
-	
+
 	public BossBar getBossBar() {
 		return bossBar;
 	}
-	
+
 	public LivingEntity getDragon() {
 		return dragon;
 	}

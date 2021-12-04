@@ -8,20 +8,19 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.AbstractArrow.PickupStatus;
-import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Guardian;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Trident;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import fr.joschma.CustomDragon.CustomDragon;
+import fr.joschma.CustomDragon.Object.Debugger;
 import fr.joschma.CustomDragon.Object.Dragon;
+import fr.joschma.CustomDragon.Utils.SpeedUtils;
 
 public class Water extends Dragon {
 
@@ -45,7 +44,8 @@ public class Water extends Dragon {
 
 		dragon.setMaxHealth(health);
 		dragon.setHealth(health);
-		dragon.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 3));
+		
+		SpeedUtils.speedConverter(dragon, name, pl);
 
 		bossBar.setTitle(ChatColor.GOLD + name);
 
@@ -53,7 +53,7 @@ public class Water extends Dragon {
 			if (en instanceof Player) {
 				Player p = (Player) en;
 				bossBar.addPlayer(p);
-				p.sendMessage("You have summond a " + ChatColor.GOLD + name + ChatColor.WHITE + " dragon");
+				Debugger.sysPlayer(p, pl.getFm().getString("Dragons.Water.SummondMessage"));
 			}
 		}
 
@@ -71,9 +71,9 @@ public class Water extends Dragon {
 
 		taskId = scheduler.scheduleSyncRepeatingTask(pl, new Runnable() {
 
-			int time25 = 0;
-			int time30 = 0;
-			int time45 = 0;
+			int Spearing = 0;
+			int PoseidonWrath = 0;
+			int AncientGuardians = 0;
 
 			@Override
 			public void run() {
@@ -82,25 +82,25 @@ public class Water extends Dragon {
 					return;
 				}
 
-				time25++;
-				time30++;
-				time45++;
+				Spearing++;
+				PoseidonWrath++;
+				AncientGuardians++;
 
-				if (time25 == 25) {
-					doAbilitie(time25);
-					time25 = 0;
-				} else if (time30 == 30) {
-					doAbilitie(time30);
-					time30 = 0;
-				} else if (time45 == 45) {
-					doAbilitie(time45);
-					time45 = 0;
+				if (Spearing == pl.getFm().getInt("Dragons.Water.Spearing.CooldownInSeconds")) {
+					doAbilitie("Spearing");
+					Spearing = 0;
+				} else if (PoseidonWrath == pl.getFm().getInt("Dragons.Water.PoseidonWrath.CooldownInSeconds")) {
+					doAbilitie("PoseidonWrath");
+					PoseidonWrath = 0;
+				} else if (AncientGuardians == pl.getFm().getInt("Dragons.Water.AncientGuardians.CooldownInSeconds")) {
+					doAbilitie("AncientGuardians");
+					AncientGuardians = 0;
 				}
 			}
 		}, 0, 20L);
 	}
 
-	public void doAbilitie(int time) {
+	public void doAbilitie(String attack) {
 		List<Player> players = new ArrayList<Player>();
 
 		for (Entity en : dragon.getNearbyEntities(150, 300, 150)) {
@@ -111,12 +111,17 @@ public class Water extends Dragon {
 
 		if (players.isEmpty())
 			return;
-		if (time == 25) {
+		
+		for (Player p : players) {
+			p.sendMessage(pl.getFm().getString("Dragons.Water." + attack + " .Message"));
+		}
+		
+		if (attack.equals("Spearing")) {
 //			Spearing: Drops a trident on everyone. (25 second cooldown). (Trident can’t be picked up)
 			Random rand = new Random();
 			
 			for (Player p : players) {
-				for (int i = 0; i < 5; i++) {
+				for (int i = 0; i < pl.getFm().getInt("Dragons.Water.AncientGuardians.NumberOfTrident"); i++) {
 					int distance = rand.nextInt(4);
 					Location dLoc = dragon.getLocation().add(distance, 3, distance);
 					Location pLoc = p.getLocation().add(new Vector(0, 1, 0));
@@ -128,30 +133,24 @@ public class Water extends Dragon {
 					trident.setVelocity(direction);
 					trident.setPickupStatus(PickupStatus.DISALLOWED);
 				}
-				
-				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Spearing");
 			}
-		} else if (time == 30) {
-//			Poseidon’s Wrath: Everyone gets struck by lightning. (30 second cooldown).
+		} else if (attack.equals("PoseidonWrath")) {
+//			Poseidon’s Wrath: Everyone gets struck by lightning. (30 second cooldown)
 			for (Player p : players) {
 				p.getLocation().getWorld().spawnEntity(p.getLocation(), EntityType.LIGHTNING);
-				
-				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Poseidon’s Wrath");
 			}
-		} else if (time == 45) {
-//			Ancient Guardians: Spawns 3 guardians on each player. (45 second cooldown).
+		} else if (attack.equals("AncientGuardians")) {
+//			Ancient Guardians: Spawns 3 guardians on each player. (45 second cooldown)
 			Random rand = new Random();
 
 			for (Player p : players) {
-				for (int i = 0; i < 3; i++) {
+				for (int i = 0; i < pl.getFm().getInt("Dragons.Water.AncientGuardians.NumberOfGuardians"); i++) {
 					Location loc = p.getLocation();
 					int distance = rand.nextInt(9);
 
 					loc.add(distance, 3, distance);
 					Guardian guardian = p.getWorld().spawn(loc, Guardian.class);
 				}
-
-				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Ancient Guardians");
 			}
 		}
 	}

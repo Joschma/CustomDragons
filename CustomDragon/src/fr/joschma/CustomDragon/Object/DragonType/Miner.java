@@ -10,16 +10,16 @@ import org.bukkit.Material;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.PigZombie;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.entity.ZombieVillager;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import fr.joschma.CustomDragon.CustomDragon;
+import fr.joschma.CustomDragon.Object.Debugger;
 import fr.joschma.CustomDragon.Object.Dragon;
+import fr.joschma.CustomDragon.Utils.SpeedUtils;
 
 public class Miner extends Dragon {
 
@@ -39,7 +39,7 @@ public class Miner extends Dragon {
 
 		dragon.setMaxHealth(health);
 		dragon.setHealth(health);
-		dragon.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, Integer.MAX_VALUE, 3));
+		SpeedUtils.speedConverter(dragon, name, pl);
 		
 		bossBar.setTitle(ChatColor.GOLD + name);
 		
@@ -47,7 +47,7 @@ public class Miner extends Dragon {
 			if (en instanceof Player) {
 				Player p = (Player) en;
 				bossBar.addPlayer(p);
-				p.sendMessage("You have summond a " + ChatColor.GOLD + name + ChatColor.WHITE + " dragon");
+				Debugger.sysPlayer(p, pl.getFm().getString("Dragons.Fire.SummondMessage"));
 			}
 		}
 		
@@ -64,8 +64,8 @@ public class Miner extends Dragon {
 
 		taskId = scheduler.scheduleSyncRepeatingTask(pl, new Runnable() {
 
-			int time30 = 0;
-			int time45 = 0;
+			int FireInTheHoleCooldown = 0;
+			int GoldRushCooldown = 0;
 
 			@Override
 			public void run() {
@@ -74,21 +74,21 @@ public class Miner extends Dragon {
 					return;
 				}
 
-				time30++;
-				time45++;
+				FireInTheHoleCooldown++;
+				GoldRushCooldown++;
 				
-				if (time30 == 30) {
-					doAbilitie(time30);
-					time30 = 0;
-				} else if (time45 == 45) {
-					doAbilitie(time45);
-					time45 = 0;
+				if (FireInTheHoleCooldown == pl.getFm().getInt("Dragons.Miner.FireInTheHole.CooldownInSeconds")) {
+					doAbilitie("FireInTheHole");
+					FireInTheHoleCooldown = 0;
+				} else if (GoldRushCooldown == pl.getFm().getInt("Dragons.Miner.GoldRush.CooldownInSeconds")) {
+					doAbilitie("GoldRush");
+					GoldRushCooldown = 0;
 				}
 			}
 		}, 0, 20L);
 	}
 
-	public void doAbilitie(int time) {
+	public void doAbilitie(String attack) {
 		List<Player> players = new ArrayList<Player>();
 
 		for (Entity en : dragon.getNearbyEntities(150, 300, 150)) {
@@ -100,42 +100,39 @@ public class Miner extends Dragon {
 		if (players.isEmpty())
 			return;
 
-		if (time == 30) {
-//			Fire in the hole!: Drops tnt on everyone (that does not damage blocks) (30 second cooldown).
+		for (Player p : players) {
+			p.sendMessage(pl.getFm().getString("Dragons.Miner." + attack + " .Message"));
+		}
+		
+		if (attack.equals("FireInTheHole")) {
+//			Fire in the hole: Drops 10 tnt on everyone (that does not damage blocks) (30 second cooldown).
 			Random rand = new Random();
 			
 			for (Player p : players) {
-				for(int i = 0; i < 10; i++) {
+				for(int i = 0; i < pl.getFm().getInt("Dragons.Fire.FireVoley.NumberOfTnt"); i++) {
 					Location loc = p.getLocation();
 					int range = rand.nextInt(6);
 					loc.add(range, 3, range);
+					
 					TNTPrimed tnt = (TNTPrimed) p.getWorld().spawn(loc, TNTPrimed.class);
 					pl.getTntm().addTnt(tnt);
 				}
-				
-				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Fire in the hole");
 			}
-		} else if (time == 45) {
+		} else if (attack.equals("GoldRush")) {
 //			Gold Rush: Spawns 2 zombie pigmen armed with gold pickaxes and gold helmet and gold chestplate on each player. (45 second cooldown).
-
 			for (Player p : players) {
 				Random rand = new Random();
 
-				for (int i = 0; i < 3; i++) {
+				for (int i = 0; i < pl.getFm().getInt("Dragons.Fire.FireVoley.NumberOfPigmen"); i++) {
 					Location loc = p.getLocation();
 					int distance = rand.nextInt(6);
-					
 					loc.add(distance, 3, distance);
 
-					PigZombie pigman = loc.getWorld().spawn(loc, PigZombie.class);
-					pigman.setAngry(true);
-					
-					pigman.getEquipment().setHelmet(new ItemStack(Material.GOLDEN_HELMET));
-					pigman.getEquipment().setChestplate(new ItemStack(Material.GOLDEN_CHESTPLATE));
-					pigman.getEquipment().setItemInMainHand(new ItemStack(Material.GOLDEN_AXE));
+					ZombieVillager zombieVillager = loc.getWorld().spawn(loc, ZombieVillager.class);
+					zombieVillager.getEquipment().setHelmet(new ItemStack(Material.GOLDEN_HELMET));
+					zombieVillager.getEquipment().setChestplate(new ItemStack(Material.GOLDEN_CHESTPLATE));
+					zombieVillager.getEquipment().setItemInMainHand(new ItemStack(Material.GOLDEN_AXE));
 				}
-				
-				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Gold Rush");
 			}
 		}
 	}

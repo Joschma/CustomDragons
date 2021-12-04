@@ -1,0 +1,106 @@
+Dragons:
+#-------------------------------------------------------#
+#----------------------Fire Dragon----------------------#
+#-------------------------------------------------------#
+  Fire:
+    SummondMessage: "&4Fire dragon &fwas summond"
+    Name: "Fire"
+# Speed: Slow/Normal/Fast
+    Speed: "Fast"
+# HP: 400 Hp (200 hearts)
+    Hp: 400
+# Fire Voley: Shoots 10 arrows set on fire in a string. (25 second cooldown)
+    FireVoley:
+      NumberOfArrows: 10
+      CooldownInSeconds: 25
+      Message: "&4Fire dragon &7 has used &eFire voley"
+# Fire Storm: Spawns 8 blazes. (30 second cooldown)
+    FireStorm:
+      NumberOfBlazes: 8
+      CooldownInSeconds: 30
+      Message: "&4Fire dragon &7 has used &eFire Storm"
+# Satanic Assistance: Spawns 3 (large) magma cubes on each player. (45 second cooldown)
+    SatanicAssistance:
+      NumberOfMagma: 3
+      CooldownInSeconds: 45
+      Message: "&4Fire dragon &7 has used &eSatanic Assistance"
+#-------------------------------------------------------#
+#---------------------Miner Dragon----------------------#
+#-------------------------------------------------------#
+  Miner:
+    SummondMessage: "&8Miner dragon &fwas summond"
+    Name: "Miner"
+    Speed: "Slow"
+    Hp: 500
+# Fire in the hole: Drops 10 tnt on everyone (that does not damage blocks) (30 second cooldown)
+    FireInTheHole:
+      NumberOfTnt: 10
+      CooldownInSeconds: 30
+      Message: "&8Miner dragon &7 has used &eFire in the hole"
+# Gold Rush: Spawns 2 zombie pigmen armed with gold pickaxes and gold helmet and gold chestplate on each player. (45 second cooldown)
+    GoldRush:
+      NumberOfPigmen: 2
+      CooldownInSeconds: 45
+      Message: "&8Miner dragon &7 has used &eGold Rush"
+#-------------------------------------------------------#
+#---------------------Speed Dragon----------------------#
+#-------------------------------------------------------#
+  Speed:
+    SummondMessage: "&aSpeed dragon &fwas summond"
+    Name: "Speed"
+    Speed: "Normal"
+    Hp: 400
+# Arrow Rain: Shoots a shower of arrows at everyone. (30 second cooldown)
+    ArrowRain:
+      NumberOfArrows: 35
+      CooldownInSeconds: 30
+      Message: "&aSpeed dragon &7 has used &eArrow Rain"
+# Distraction: Spawns 2 zombies on each player. (45 second cooldown)
+    Distraction:
+      NumberOfZombies: 2
+      CooldownInSeconds: 45
+      Message: "&aSpeed dragon &7 has used &eDistraction"
+#-------------------------------------------------------#
+#-------------------Void Born Dragon--------------------#
+#-------------------------------------------------------#
+  VoidBorn:
+    SummondMessage: "&0Void Born dragon &fwas summond"
+    Name: "VoidBorn"
+    Speed: "Slow"
+    Hp: 1000
+# Powerful Presence: Players get the nausea effect for 10 seconds (30 second cooldown)
+    PowerfulPresence:
+      EffectDurationInSeconds: 10
+      CooldownInSeconds: 30
+      Message: "&0Void Born dragon &7 has used &ePowerful Presence"
+# Confusion: All players are teleported as if they had just eaten a chorus fruit. (45 second cooldown)
+    Confusion:
+      CooldownInSeconds: 40
+      Message: "&0Void Born dragon &7 has used &eConfusion"
+# Corrupt Minions: Spawns 2 zombies with black leather armour (protection 1) and wooden swords (sharpness 1) on each player. (45 second cooldown)
+    Corrupt inions:
+      NumberOfZombies: 2
+      CooldownInSeconds: 45
+      Message: "&0Void Born dragon &7 has used &eCorrupt Minions"
+#-------------------------------------------------------#
+#---------------------Water Dragon----------------------#
+#-------------------------------------------------------#
+  Water:
+    SummondMessage: "&bWater dragon &fwas summond"
+    Name: "Water"
+    Speed: "Normal"
+    Hp: 600
+# Spearing: Drops 5 trident on everyone. (25 second cooldown). (Trident can’t be picked up)
+    Spearing:
+      NumberOfTrident: 5
+      CooldownInSeconds: 25
+      Message: "&bWater Born dragon &7 has used &eSpearing"
+# Poseidon’s Wrath: Everyone gets struck by lightning. (30 second cooldown)
+    PoseidonWrath:
+      CooldownInSeconds: 30
+      Message: "&bWater Born dragon &7 has used &ePoseidon’s Wrath"
+# Ancient Guardians: Spawns 3 guardians on each player. (45 second cooldown)
+    AncientGuardians:
+      NumberOfGuardians: 3
+      CooldownInSeconds: 45
+      Message: "&bWater Born dragon &7 has used &eAncient Guardians"

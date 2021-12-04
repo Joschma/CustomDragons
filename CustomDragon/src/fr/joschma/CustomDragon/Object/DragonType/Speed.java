@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
@@ -19,7 +18,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.util.Vector;
 
 import fr.joschma.CustomDragon.CustomDragon;
+import fr.joschma.CustomDragon.Object.Debugger;
 import fr.joschma.CustomDragon.Object.Dragon;
+import fr.joschma.CustomDragon.Utils.SpeedUtils;
 
 public class Speed extends Dragon {
 
@@ -43,7 +44,8 @@ public class Speed extends Dragon {
 
 		dragon.setMaxHealth(health);
 		dragon.setHealth(health);
-		dragon.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 3));
+		
+		SpeedUtils.speedConverter(dragon, name, pl);
 
 		bossBar.setTitle(ChatColor.GOLD + name);
 
@@ -51,7 +53,7 @@ public class Speed extends Dragon {
 			if (en instanceof Player) {
 				Player p = (Player) en;
 				bossBar.addPlayer(p);
-				p.sendMessage("You have summond a " + ChatColor.GOLD + name + ChatColor.WHITE + " dragon");
+				Debugger.sysPlayer(p, pl.getFm().getString("Dragons.Speed.SummondMessage"));
 			}
 		}
 
@@ -69,8 +71,8 @@ public class Speed extends Dragon {
 
 		taskId = scheduler.scheduleSyncRepeatingTask(pl, new Runnable() {
 
-			int time30 = 0;
-			int time45 = 0;
+			int ArrowRainCooldown = 0;
+			int DistractionCooldown = 0;
 
 			@Override
 			public void run() {
@@ -79,21 +81,21 @@ public class Speed extends Dragon {
 					return;
 				}
 				
-				time30++;
-				time45++;
+				ArrowRainCooldown++;
+				DistractionCooldown++;
 
-				if (time30 == 30) {
-					doAbilitie(time30);
-					time30 = 0;
-				} else if (time45 == 45) {
-					doAbilitie(time45);
-					time45 = 0;
+				if (ArrowRainCooldown == pl.getFm().getInt("Dragons.Speed.ArrowRain.CooldownInSeconds")) {
+					doAbilitie("ArrowRain");
+					ArrowRainCooldown = 0;
+				} else if (DistractionCooldown == pl.getFm().getInt("Dragons.Speed.Distraction.CooldownInSeconds")) {
+					doAbilitie("Distraction");
+					DistractionCooldown = 0;
 				}
 			}
 		}, 0, 20L);
 	}
 
-	public void doAbilitie(int time) {
+	public void doAbilitie(String attack) {
 		List<Player> players = new ArrayList<Player>();
 
 		for (Entity en : dragon.getNearbyEntities(150, 300, 150)) {
@@ -105,29 +107,31 @@ public class Speed extends Dragon {
 		if (players.isEmpty())
 			return;
 
-		if (time == 30) {
+		for (Player p : players) {
+			p.sendMessage(pl.getFm().getString("Dragons.Speed." + attack + " .Message"));
+		}
+		
+		if (attack.equals("ArrowRain")) {
 //			Arrow Rain: Shoots a shower of arrows at everyone. (30 second cooldown)
 			Random rand = new Random();
 			
 			for (Player p : players) {
-				for (int i = 0; i < 5; i++) {
+				for (int i = 0; i < pl.getFm().getInt("Dragons.Speed.ArrowRain.NumberOfArrows"); i++) {
 					int distance = rand.nextInt(4);
 					Location dLoc = dragon.getLocation().add(distance, 3, distance);
 					Location pLoc = p.getLocation().add(new Vector(0, 1, 0));
 					Vector direction = pLoc.toVector().subtract(dLoc.toVector());
 					
-					Arrow arrow = pLoc.getWorld().spawnArrow(dLoc, direction, 1F, 5F);
+					Arrow arrow = pLoc.getWorld().spawnArrow(dLoc, direction, 5F, 5F);
                     arrow.setGravity(false);
 				}
-
-				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Arrow Rain");
 			}
-		} else if (time == 45) {
+		} else if (attack.equals("Distraction")) {
 //			Distraction: Spawns 2 zombies on each player. (45 second cooldown)
 			Random rand = new Random();
 
 			for (Player p : players) {
-				for (int i = 0; i < 2; i++) {
+				for (int i = 0; i < pl.getFm().getInt("Dragons.Speed.Distraction.NumberOfZombies"); i++) {
 					Location loc = p.getLocation();
 					int distance = rand.nextInt(6);
 
@@ -135,8 +139,6 @@ public class Speed extends Dragon {
 					Zombie zombie = p.getWorld().spawn(loc, Zombie.class);
 					zombie.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1));
 				}
-
-				p.sendMessage(ChatColor.GOLD + name + ChatColor.GRAY + " as used " + ChatColor.YELLOW + "Distraction");
 			}
 		}
 	}
@@ -152,47 +154,5 @@ public class Speed extends Dragon {
 
 	public LivingEntity getDragon() {
 		return dragon;
-	}
-
-	public static final float DEGTORAD = 0.017453293F;
-	public static final float RADTODEG = 57.29577951F;
-
-	public static double lengthSquared(double... values) {
-		double rval = 0;
-		for (double value : values) {
-			rval += value * value;
-		}
-		return rval;
-	}
-
-	public static double length(double... values) {
-		return Math.sqrt(lengthSquared(values));
-	}
-
-	public static float getLookAtYaw(Vector motion) {
-		double dx = motion.getX();
-		double dz = motion.getZ();
-		float yaw = 0;
-		// Set yaw
-		if (dx != 0) {
-			// Set yaw start value based on dx
-			if (dx < 0) {
-				yaw = 270;
-			} else {
-				yaw = 90;
-			}
-			yaw -= atan(dz / dx);
-		} else if (dz < 0) {
-			yaw = 180;
-		}
-		return -yaw - 90;
-	}
-
-	public static float getLookAtPitch(Vector motion) {
-		return -atan(motion.getY() / length(motion.getX(), motion.getZ()));
-	}
-
-	public static float atan(double value) {
-		return RADTODEG * (float) Math.atan(value);
 	}
 }
